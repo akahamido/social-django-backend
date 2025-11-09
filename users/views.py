@@ -1,12 +1,14 @@
 from django.shortcuts import render
+from rest_framework import generics, permissions, status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import AllowAny,IsAuthenticated
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import RegisterSerializer, LoginSerializer, ForgotPasswordSerializer, ResetPasswordSerializer,ChangePasswordSerializer,UserSerializer
+from .serializers import RegisterSerializer, LoginSerializer, ForgotPasswordSerializer, ResetPasswordSerializer,ChangePasswordSerializer,UserSerializer,PostSerializer, CommentSerializer, ChangeUsernameSerializer
 from django.contrib.auth import get_user_model
-from rest_framework.permissions import IsAuthenticated
+from .models import Post, Comment, UsernameChangeHistory
+
 
 
 User = get_user_model()
@@ -105,4 +107,50 @@ class UserMeView(APIView):
         if serializer.is_valid():
             user = serializer.save()
             return Response(UserSerializer(user).data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+    
+class PostListCreateView(generics.ListCreateAPIView):
+    queryset = Post.objects.all().order_by('-created_at')
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save()
+
+class PostRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Post.objects.all()
+    serializer_class = PostSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+class CommentListCreateView(generics.ListCreateAPIView):
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def get_queryset(self):
+        post_id = self.kwargs.get('post_id')
+        return Comment.objects.filter(post_id=post_id).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        post_id = self.kwargs.get('post_id')
+        serializer.save(post_id=post_id, author=self.request.user)
+
+class CommentRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    queryset = Comment.objects.all()
+    serializer_class = CommentSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+class ChangeUsernameView(APIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request):
+        serializer = ChangeUsernameSerializer(data=request.data, context={'request': request})
+        if serializer.is_valid():
+            user = request.user
+            old = user.username
+            user.username = serializer.validated_data['username']
+            user.save()
+            UsernameChangeHistory.objects.create(
+                user=user, old_username=old, new_username=user.username
+            )
+            return Response({"message": "یوزرنیم با موفقیت تغییر یافت", "username": user.username})
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

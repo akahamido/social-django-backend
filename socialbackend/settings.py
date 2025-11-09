@@ -46,10 +46,18 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
     'users',
     'drf_spectacular', #r
-    'drf_spectacular_sidecar'#r
+    'drf_spectacular_sidecar',#r
+    'django.contrib.sites',  # الزامی برای allauth
+    'rest_framework',
+    'rest_framework.authtoken',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
+    'dj_rest_auth',
+    'dj_rest_auth.registration',
 ]
 
 MIDDLEWARE = [
@@ -58,6 +66,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
@@ -96,6 +105,20 @@ DATABASES = {
     }
 }
 
+SITE_ID = 1
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'APP': {
+            'client_id': '<GOOGLE_CLIENT_ID>',
+            'secret': '<GOOGLE_CLIENT_SECRET>',
+            'key': ''
+        }
+    }
+}
+
+REST_USE_JWT = True
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -106,6 +129,12 @@ REST_FRAMEWORK = {
 }
 REST_FRAMEWORK['DEFAULT_SCHEMA_CLASS'] = 'drf_spectacular.openapi.AutoSchema'#Review
 
+ACCOUNT_EMAIL_VERIFICATION = 'none'
+ACCOUNT_AUTHENTICATION_METHOD = 'username_email'
+ACCOUNT_EMAIL_REQUIRED = False
+ACCOUNT_USERNAME_REQUIRED = False
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'username'
+SOCIALACCOUNT_QUERY_EMAIL = True
 
 
 # Password validation
@@ -129,6 +158,8 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTHENTICATION_BACKENDS = [
     'users.auth.EmailOrUsernameOrPhoneBackend',  
     'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
+
 ]
 
 

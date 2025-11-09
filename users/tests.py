@@ -1,9 +1,11 @@
 from django.test import TestCase
 from django.urls import reverse
-from rest_framework.test import APITestCase
+from rest_framework.test import APITestCase,APIClient
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework import status
 from django.contrib.auth import get_user_model
+from .models import Post, Comment
+
 
 User = get_user_model()
 
@@ -129,3 +131,27 @@ class AuthTests(APITestCase):
         resp = self.client.patch(url, data, content_type='application/json', HTTP_AUTHORIZATION=f"Bearer {access}")
         self.assertEqual(resp.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertIn("یوزرنیم قبلاً استفاده شده", str(resp.data))
+
+class PostCommentTestCase(APITestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='amin', password='123456')
+        self.client = APIClient()
+        # به جای login، با کاربر authenticate می‌کنیم
+        self.client.force_authenticate(user=self.user)
+
+    def test_create_post(self):
+        url = reverse('post-list-create')
+        data = {"content": "اولین پستم"}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Post.objects.count(), 1)
+        self.assertEqual(Post.objects.first().author, self.user)
+
+    def test_comment_on_post(self):
+        post = Post.objects.create(author=self.user, content="پست تستی")
+        url = reverse('comment-list-create', kwargs={'post_id': post.id})
+        data = {"content": "کامنت تستی"}
+        response = self.client.post(url, data, format='json')
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(Comment.objects.count(), 1)
+        self.assertEqual(Comment.objects.first().author, self.user)

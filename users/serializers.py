@@ -1,6 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model, authenticate
 from rest_framework.validators import UniqueValidator
+from .models import Post, Comment, UsernameChangeHistory
+
 
 User = get_user_model()
 
@@ -137,4 +139,62 @@ class UserSerializer(serializers.ModelSerializer):
         user = self.context['request'].user
         if value and User.objects.exclude(id=user.id).filter(phone=value).exists():
             raise serializers.ValidationError("شماره تلفن قبلاً استفاده شده")
+        return value
+
+class UserMinSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ["id", "username", "first_name", "last_name"]
+
+class PostSerializer(serializers.ModelSerializer):
+    author = UserMinSerializer(read_only=True)
+    mentions = serializers.PrimaryKeyRelatedField(many=True, queryset=User.objects.all(), required=False)
+
+    class Meta:
+        model = Post
+        fields = ["id", "author", "content", "mentions", "created_at", "updated_at"]
+        read_only_fields = ["id", "author", "created_at", "updated_at"]
+
+    def create(self, validated_data):
+        mentions = validated_data.pop('mentions', [])
+        request = self.context.get('request')
+        user = request.user
+        post = Post.objects.create(author=user, **validated_data)
+        if mentions:
+            post.mentions.set(mentions)
+        return post
+
+    def update(self, instance, validated_data):
+        mentions = validated_data.pop('mentions', None)
+        for attr, value in validated_data.items():
+            setattr(instance, attr, value)
+        instance.save()
+        if mentions is not None:
+            instance.mentions.set(mentions)
+        return instance
+
+class CommentSerializer(serializers.ModelSerializer):
+    author = serializers.StringRelatedField(read_only=True)
+    post = serializers.PrimaryKeyRelatedField(read_only=True)
+    mentions = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), many=True, required=False)
+
+    class Meta:
+        model = Comment
+        fields = ['id', 'post', 'author', 'content', 'mentions', 'created_at', 'updated_at']
+        read_only_fields = ['id', 'author', 'post', 'created_at', 'updated_at']
+
+    def create(self, validated_data):
+        mentions_data = validated_data.pop('mentions', [])
+        # فقط یه بار author از view پاس داده می‌شه، پس اینجا دوباره اضافه‌اش نکن.
+        comment = Comment.objects.create(**validated_data)
+        comment.mentions.set(mentions_data)
+        return comment
+
+class ChangeUsernameSerializer(serializers.Serializer):
+    username = serializers.CharField(max_length=50)
+
+    def validate_username(self, value):
+        user = self.context['request'].user
+        if value and User.objects.exclude(id=user.id).filter(username=value).exists():
+            raise serializers.ValidationError("این یوزرنیم قبلاً گرفته شده است.")
         return value
