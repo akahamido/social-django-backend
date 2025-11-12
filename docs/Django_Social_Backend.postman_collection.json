@@ -1,0 +1,597 @@
+{
+  "info": {
+    "name": "Django Social Backend",
+    "_postman_id": "b5d22700-6c01-4bb1-99ef-6f34018def68",
+    "description": "Minimal Postman collection for the Django Social Backend project. Use {{base_url}} as the host. OTP is hardcoded to 123456.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"alice@example.com\",\n  \"username\": \"alice\",\n  \"phone\": \"09123456789\",\n  \"password\": \"securepass\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/register/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "register",
+                ""
+              ]
+            },
+            "description": "Register new user (email, username or phone allowed)."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "body": "{\"message\": \"ثبت‌نام موفق\", \"user_id\": \"{{test_user_id}}\"}",
+              "status": "Created",
+              "code": 201
+            }
+          ]
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"alice\",\n  \"password\": \"securepass\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/login/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "login",
+                ""
+              ]
+            },
+            "description": "Login with email, username or phone. Returns access_token and refresh_token."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "body": "{\"access_token\": \"{{access_token}}\", \"refresh_token\": \"{{refresh_token}}\", \"user\": {\"id\": \"{{test_user_id}}\", \"email\": \"alice@example.com\", \"username\": \"alice\", \"phone\": \"09123456789\"}}",
+              "status": "OK",
+              "code": 200
+            }
+          ]
+        },
+        {
+          "name": "Token - Obtain (simplejwt)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"alice\",\n  \"password\": \"securepass\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/token/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "token",
+                ""
+              ]
+            },
+            "description": "SimpleJWT token obtain endpoint (username/password). Your project exposes this at /api/token/."
+          },
+          "response": []
+        },
+        {
+          "name": "Token - Refresh (simplejwt)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/token/refresh/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "token",
+                "refresh",
+                ""
+              ]
+            },
+            "description": "Refresh access token using refresh token."
+          },
+          "response": []
+        },
+        {
+          "name": "Forgot Password (request OTP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"alice@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/forgot-password/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "forgot-password",
+                ""
+              ]
+            },
+            "description": "Request password reset OTP (OTP currently hardcoded to 123456)."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "body": "{\"message\": \"کد OTP ارسال شد (فعلاً هاردکد: 123456)\"}",
+              "status": "OK",
+              "code": 200
+            }
+          ]
+        },
+        {
+          "name": "Reset Password (with OTP)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"identifier\": \"alice@example.com\",\n  \"otp\": \"123456\",\n  \"new_password\": \"newsecure\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/reset-password/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "reset-password",
+                ""
+              ]
+            },
+            "description": "Reset password by providing identifier, OTP (123456) and new_password."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "body": "{\"message\": \"رمز عبور با موفقیت تغییر یافت.\"}",
+              "status": "OK",
+              "code": 200
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Profile",
+      "item": [
+        {
+          "name": "Get Me",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/me/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me",
+                ""
+              ]
+            },
+            "description": "Get current user's profile."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "body": "{\"id\": \"{{test_user_id}}\", \"first_name\": \"\", \"last_name\": \"\", \"username\": \"alice\", \"email\": \"alice@example.com\", \"phone\": \"09123456789\", \"created_at\": \"2025-01-01T00:00:00Z\", \"updated_at\": \"2025-01-01T00:00:00Z\"}",
+              "status": "OK",
+              "code": 200
+            }
+          ]
+        },
+        {
+          "name": "Update Me (PATCH)",
+          "request": {
+            "method": "PATCH",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Alice\",\n  \"last_name\": \"Smith\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/me/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "me",
+                ""
+              ]
+            },
+            "description": "Partial update of profile; only sent fields are updated."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "body": "{\"id\": \"{{test_user_id}}\", \"first_name\": \"Alice\", \"last_name\": \"Smith\", \"username\": \"alice\", \"email\": \"alice@example.com\", \"phone\": \"09123456789\", \"created_at\": \"2025-01-01T00:00:00Z\", \"updated_at\": \"2025-01-02T00:00:00Z\"}",
+              "status": "OK",
+              "code": 200
+            }
+          ]
+        },
+        {
+          "name": "Change Password (authenticated)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"old_password\": \"securepass\",\n  \"new_password\": \"newsecure\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/change-password/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "change-password",
+                ""
+              ]
+            },
+            "description": "Authenticated change password endpoint (old_password + new_password)."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "body": "{\"message\": \"رمز عبور با موفقیت تغییر یافت.\"}",
+              "status": "OK",
+              "code": 200
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Username",
+      "item": [
+        {
+          "name": "Change Username",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"alice_new\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/change-username/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "change-username",
+                ""
+              ]
+            },
+            "description": "Change current user's username; history saved server-side."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "body": "{\"message\": \"یوزرنیم با موفقیت تغییر یافت\", \"username\": \"alice_new\"}",
+              "status": "OK",
+              "code": 200
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Posts",
+      "item": [
+        {
+          "name": "List & Create Posts",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Hello world! @alice\",\n  \"mentions\": [\n    \"{{other_user_id}}\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/posts/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "posts",
+                ""
+              ]
+            },
+            "description": "List (GET) or create (POST) posts. Mentions accept user IDs."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "body": "{\"id\": \"{{test_post_id}}\", \"author\": {\"id\": \"{{test_user_id}}\", \"username\": \"alice\", \"first_name\": \"\", \"last_name\": \"\"}, \"content\": \"Hello world! @alice\", \"mentions\": [\"{{other_user_id}}\"], \"created_at\": \"2025-01-02T00:00:00Z\", \"updated_at\": \"2025-01-02T00:00:00Z\"}",
+              "status": "Created",
+              "code": 201
+            }
+          ]
+        },
+        {
+          "name": "Retrieve / Update / Delete Post",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/posts/{{test_post_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "posts",
+                "{{test_post_id}}",
+                ""
+              ]
+            },
+            "description": "Retrieve, update (PUT/PATCH) or delete a post by UUID."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "body": "{\"id\": \"{{test_post_id}}\", \"author\": {\"id\": \"{{test_user_id}}\", \"username\": \"alice\"}, \"content\": \"Hello world! @alice\", \"mentions\": [\"{{other_user_id}}\"], \"created_at\": \"2025-01-02T00:00:00Z\", \"updated_at\": \"2025-01-02T00:00:00Z\"}",
+              "status": "OK",
+              "code": 200
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Comments",
+      "item": [
+        {
+          "name": "List & Create Comments",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"Nice post!\",\n  \"mentions\": [\n    \"{{other_user_id}}\"\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/users/posts/{{test_post_id}}/comments/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "posts",
+                "{{test_post_id}}",
+                "comments",
+                ""
+              ]
+            },
+            "description": "List (GET) or create (POST) comments for a post."
+          },
+          "response": [
+            {
+              "name": "201 Created",
+              "body": "{\"id\": \"{{test_comment_id}}\", \"post\": \"{{test_post_id}}\", \"author\": \"alice\", \"content\": \"Nice post!\", \"mentions\": [\"{{other_user_id}}\"], \"created_at\": \"2025-01-02T01:00:00Z\", \"updated_at\": \"2025-01-02T01:00:00Z\"}",
+              "status": "Created",
+              "code": 201
+            }
+          ]
+        },
+        {
+          "name": "Retrieve / Update / Delete Comment",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{access_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/users/comments/{{test_comment_id}}/",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "comments",
+                "{{test_comment_id}}",
+                ""
+              ]
+            },
+            "description": "Retrieve/update/delete comment by UUID."
+          },
+          "response": [
+            {
+              "name": "200 OK",
+              "body": "{\"id\": \"{{test_comment_id}}\", \"post\": \"{{test_post_id}}\", \"author\": \"alice\", \"content\": \"Nice post!\", \"mentions\": [\"{{other_user_id}}\"], \"created_at\": \"2025-01-02T01:00:00Z\", \"updated_at\": \"2025-01-02T01:00:00Z\"}",
+              "status": "OK",
+              "code": 200
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8000",
+      "type": "string"
+    },
+    {
+      "key": "access_token",
+      "value": ""
+    },
+    {
+      "key": "refresh_token",
+      "value": ""
+    },
+    {
+      "key": "otp",
+      "value": "123456"
+    },
+    {
+      "key": "test_user_id",
+      "value": "00000000-0000-0000-0000-000000000001"
+    },
+    {
+      "key": "other_user_id",
+      "value": "00000000-0000-0000-0000-000000000002"
+    },
+    {
+      "key": "test_post_id",
+      "value": "00000000-0000-0000-0000-000000000010"
+    },
+    {
+      "key": "test_comment_id",
+      "value": "00000000-0000-0000-0000-000000000011"
+    }
+  ]
+}
