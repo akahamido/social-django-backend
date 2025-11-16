@@ -185,7 +185,6 @@ class CommentSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         mentions_data = validated_data.pop('mentions', [])
-        # فقط یه بار author از view پاس داده می‌شه، پس اینجا دوباره اضافه‌اش نکن.
         comment = Comment.objects.create(**validated_data)
         comment.mentions.set(mentions_data)
         return comment
